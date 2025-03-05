@@ -45,5 +45,6 @@ source /etc/default/locale
 # 🚀 Instalar GitLab CE sin interacción
 echo "🦊 Instalando GitLab CE..."
 sudo EXTERNAL_URL="http://$IP" apt-get -y install gitlab-ee
+sudo gitlab-ctl reconfigure
 
-echo "✅ Instalación completa. Ejecuta 'sudo gitlab-ctl reconfigure' para finalizar la configuración."
+echo "✅ Instalación completa."
