@@ -18,6 +18,8 @@ free -h
 
 # Install GitLab
 
+sudo apt update && sudo apt upgrade
+
 sudo apt-get install curl openssh-server ca-certificates apt-transport-https perl
 
 curl https://packages.gitlab.com/gpg.key | sudo tee /etc/apt/trusted.gpg.d/gitlab.asc
@@ -26,4 +28,4 @@ sudo apt-get install -y postfix
 
 sudo curl -sS https://packages.gitlab.com/install/repositories/gitlab/raspberry-pi2/script.deb.sh | sudo bash
 
-sudo EXTERNAL_URL="https://gitlab.peznuss.com" apt-get install gitlab-ce
+sudo apt-get install gitlab-ce
