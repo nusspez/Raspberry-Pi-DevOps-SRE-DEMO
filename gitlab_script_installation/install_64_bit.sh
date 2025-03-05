@@ -17,7 +17,6 @@ sudo apt autoclean -y
 # 🚀 Configurar Swap a 4GB
 SWAP_SIZE_MB=4096
 echo "🚀 Configurando el Swap a ${SWAP_SIZE_MB}MB..."
-
 sudo dphys-swapfile swapoff
 sudo sed -i "s/^CONF_SWAPSIZE=.*/CONF_SWAPSIZE=$SWAP_SIZE_MB/" /etc/dphys-swapfile
 sudo dphys-swapfile setup
@@ -47,8 +46,31 @@ echo "🦊 Instalando GitLab CE..."
 sudo EXTERNAL_URL="http://$IP" apt-get -y install gitlab-ee
 sudo gitlab-ctl reconfigure
 
-echo "✅ Instalación completa."
+echo "⏳ Esperando 30 segundos para que GitLab se inicialice..."
+sleep 30
 
-sudo cat /etc/gitlab/initial_root_password
+# 🚀 Obtener la contraseña del usuario root
+ROOT_PASSWORD=$(sudo cat /etc/gitlab/initial_root_password | grep "Password:" | awk '{print $2}')
+echo "✅ Contraseña de root obtenida."
 
-echo # WARNING: This file will be automatically deleted in 24 hours.
+# 🚀 Crear un token de administrador para la API
+ROOT_TOKEN=$(sudo gitlab-rails runner "token = PersonalAccessToken.create!(user: User.find_by(username: 'root'), name: 'RootToken', scopes: ['api'], expires_at: Time.now + 365*24*60*60); token.set_token('MiSuperToken123'); token.save!; puts token.token")
+echo "✅ Token de administrador generado."
+
+# 🚀 Generar una contraseña segura sin caracteres especiales
+SECURE_PASSWORD=$(openssl rand -base64 16 | tr -dc 'A-Za-z0-9' | head -c 16)
+echo "🔑 Contraseña generada para el nuevo usuario."
+
+# 🚀 Datos del nuevo usuario
+EMAIL="nusspez@gmail.com"
+USERNAME="peznuss"
+
+# 🚀 Crear un nuevo usuario en GitLab
+echo "👤 Creando el usuario $USERNAME en GitLab..."
+curl --request POST "http://$IP/api/v4/users" \
+     --header "PRIVATE-TOKEN: MiSuperToken123" \
+     --data "email=$EMAIL&password=$SECURE_PASSWORD&username=$USERNAME&name=$USERNAME&skip_confirmation=true"
+
+echo "✅ Usuario creado con éxito."
+echo "🔑 Usuario: $USERNAME"
+echo "🔑 Contraseña: $SECURE_PASSWORD"
