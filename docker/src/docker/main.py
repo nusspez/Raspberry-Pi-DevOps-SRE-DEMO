@@ -5,6 +5,9 @@ def run_command(cmd):
     print(f"🔹 Ejecutando: {cmd}")
     subprocess.run(cmd, shell=True, check=True)
 
+# 🚀 Obtener el nombre de la distribución
+distro_codename = subprocess.check_output("lsb_release -cs", shell=True, text=True).strip()
+
 # 🚀 Actualizar el sistema
 run_command("sudo apt update -y && sudo apt upgrade -y")
 
@@ -14,8 +17,8 @@ run_command("sudo apt install -y apt-transport-https ca-certificates curl gnupg 
 # 🚀 Agregar la clave GPG de Docker
 run_command("curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg")
 
-# 🚀 Agregar el repositorio de Docker
-run_command("echo 'deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable' | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null")
+# 🚀 Agregar el repositorio de Docker con el código de la versión correcta
+run_command(f"echo 'deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian {distro_codename} stable' | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null")
 
 # 🚀 Actualizar paquetes de nuevo para incluir Docker
 run_command("sudo apt update -y")
