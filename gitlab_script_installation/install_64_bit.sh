@@ -2,14 +2,17 @@
 set -e  # Salir si algún comando falla
 export DEBIAN_FRONTEND=noninteractive  # Evita confirmaciones interactivas
 
+# 🚀 Obtener la IP automáticamente
+IP=$(hostname -I | awk '{print $1}')
+
 # 🚀 Actualizar dependencias sin preguntar
 echo "🔄 Actualizando dependencias..."
-yes | sudo apt update -y && sudo apt upgrade -y
+sudo apt update -y && sudo apt upgrade -y
 
 # 🚀 Limpiar paquetes innecesarios sin confirmación
 echo "🧹 Eliminando paquetes obsoletos..."
-yes | sudo apt autoremove -y
-yes | sudo apt autoclean -y
+sudo apt autoremove -y
+sudo apt autoclean -y
 
 # 🚀 Configurar Swap a 4GB
 SWAP_SIZE_MB=4096
@@ -17,8 +20,8 @@ echo "🚀 Configurando el Swap a ${SWAP_SIZE_MB}MB..."
 
 sudo dphys-swapfile swapoff
 sudo sed -i "s/^CONF_SWAPSIZE=.*/CONF_SWAPSIZE=$SWAP_SIZE_MB/" /etc/dphys-swapfile
-yes | sudo dphys-swapfile setup
-yes | sudo dphys-swapfile swapon
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
 
 # 🚀 Verificar el Swap
 echo "✅ Estado del Swap:"
@@ -26,14 +29,21 @@ free -h
 
 # 🚀 Instalar dependencias de GitLab sin pedir confirmación
 echo "🛠️ Instalando dependencias para GitLab..."
-yes | sudo apt-get install -y curl openssh-server ca-certificates perl
+sudo apt-get install -y curl openssh-server ca-certificates perl
 
 # 🚀 Agregar clave GPG y repositorio de GitLab
 echo "🔑 Configurando el repositorio de GitLab..."
-yes | sudo curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
+curl -sS https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
+
+# 🚀 Configurar Locales
+echo "🌍 Configurando los locales..."
+sudo bash -c 'echo -e "LANG=en_US.UTF-8\nLC_ALL=en_US.UTF-8\nLC_CTYPE=en_US.UTF-8\nLC_MESSAGES=en_US.UTF-8" > /etc/default/locale'
+sudo locale-gen en_US.UTF-8
+sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+source /etc/default/locale
 
 # 🚀 Instalar GitLab CE sin interacción
 echo "🦊 Instalando GitLab CE..."
-yes | sudo EXTERNAL_URL="https://gitlab.example.com" apt-get -y install gitlab-ee
+sudo EXTERNAL_URL="http://$IP" apt-get -y install gitlab-ee
 
 echo "✅ Instalación completa. Ejecuta 'sudo gitlab-ctl reconfigure' para finalizar la configuración."
