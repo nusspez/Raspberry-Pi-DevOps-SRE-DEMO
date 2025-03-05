@@ -49,6 +49,6 @@ sudo gitlab-ctl reconfigure
 
 echo "✅ Instalación completa."
 
-cat /etc/gitlab/initial_root_password
+sudo cat /etc/gitlab/initial_root_password
 
 echo # WARNING: This file will be automatically deleted in 24 hours.
