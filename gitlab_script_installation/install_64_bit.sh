@@ -67,9 +67,24 @@ USERNAME="peznuss"
 
 # 🚀 Crear un nuevo usuario en GitLab
 echo "👤 Creando el usuario $USERNAME en GitLab..."
-curl --request POST "http://$IP/api/v4/users" \
+USER_ID=$(curl --silent --request POST "http://$IP/api/v4/users" \
      --header "PRIVATE-TOKEN: MiSuperToken123" \
-     --data "email=$EMAIL&password=$SECURE_PASSWORD&username=$USERNAME&name=$USERNAME&skip_confirmation=true"
+     --data "email=$EMAIL&password=$SECURE_PASSWORD&username=$USERNAME&name=$USERNAME&skip_confirmation=true" | jq -r '.id')
+
+if [ "$USER_ID" == "null" ] || [ -z "$USER_ID" ]; then
+  echo "❌ Error: No se pudo crear el usuario."
+  exit 1
+fi
+
+echo "✅ Usuario $USERNAME creado con ID $USER_ID"
+
+# 🚀 Convertir el usuario en administrador
+echo "🔧 Otorgando permisos de administrador a $USERNAME..."
+curl --request PUT "http://$IP/api/v4/users/$USER_ID" \
+     --header "PRIVATE-TOKEN: MiSuperToken123" \
+     --data "admin=true"
+
+echo "✅ $USERNAME ahora es administrador."
 
 echo "✅ Usuario creado con éxito."
 echo "🔑 Usuario: $USERNAME"
