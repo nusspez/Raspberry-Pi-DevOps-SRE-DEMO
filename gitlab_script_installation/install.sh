@@ -11,7 +11,6 @@ echo "🚀 Change swap and max swap to ${SWAP_SIZE_MB}MB ..."
 sudo dphys-swapfile swapoff
 
 sudo sed -i "s/^CONF_SWAPSIZE=.*/CONF_SWAPSIZE=$SWAP_SIZE_MB/" /etc/dphys-swapfile
-sudo sed -i "s/^CONF_MAXSWAP=.*/CONF_MAXSWAP=$CONF_MAXSWAP/" /etc/dphys-swapfile
 
 sudo dphys-swapfile setup
 sudo dphys-swapfile swapon
