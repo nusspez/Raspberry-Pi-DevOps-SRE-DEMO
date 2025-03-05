@@ -28,7 +28,7 @@ free -h
 
 # 🚀 Instalar dependencias de GitLab sin pedir confirmación
 echo "🛠️ Instalando dependencias para GitLab..."
-sudo apt-get install -y curl openssh-server ca-certificates perl
+sudo apt-get install -y curl openssh-server ca-certificates perl jq
 
 # 🚀 Agregar clave GPG y repositorio de GitLab
 echo "🔑 Configurando el repositorio de GitLab..."
