@@ -1,0 +1,42 @@
+groups:
+  - name: server_alerts
+    rules:
+      # Alerta para uso elevado de memoria (más del 80% usado)
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso elevado de memoria en {{ $labels.instance }}"
+          description: "El uso de memoria supera el 80% durante más de 2 minutos."
+
+      # Alerta para uso elevado del disco en el sistema de archivos raíz (más del 90% usado)
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_avail_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Uso elevado de disco en {{ $labels.instance }}"
+          description: "El uso del disco en '/' supera el 90% durante más de 2 minutos."
+
+      # Alerta para tráfico de red de salida (transmit) muy alto (por ejemplo, > 10MB/s)
+      - alert: HighNetworkTransmit
+        expr: rate(node_network_transmit_bytes_total[5m]) > 10000000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto tráfico de salida en {{ $labels.instance }}"
+          description: "La tasa de transmisión de red supera los 10MB/s durante más de 2 minutos."
+
+      # Alerta para tráfico de red de entrada (receive) muy alto (por ejemplo, > 10MB/s)
+      - alert: HighNetworkReceive
+        expr: rate(node_network_receive_bytes_total[5m]) > 10000000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto tráfico de entrada en {{ $labels.instance }}"
+          description: "La tasa de recepción de red supera los 10MB/s durante más de 2 minutos."
