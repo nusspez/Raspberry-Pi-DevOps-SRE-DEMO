@@ -19,3 +19,7 @@ scrape_configs:
     # Prometheus expone sus propias métricas en '/metrics'
     static_configs:
       - targets: ['192.168.100.16:9000']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node_exporter:9100']
