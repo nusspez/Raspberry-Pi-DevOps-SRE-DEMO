@@ -5,11 +5,13 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     ports:
-      - "9090:9090"
+      - "9000:9090"   # Mapea el puerto 9090 del contenedor al puerto 9000 del host
     restart: unless-stopped
+    command:
+      - '--web.listen-address=:9090'
 
 volumes:
   prometheus_data:
