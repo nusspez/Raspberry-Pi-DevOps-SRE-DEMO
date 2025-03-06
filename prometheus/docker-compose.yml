@@ -8,10 +8,10 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     ports:
-      - "9000:9090"   # Mapea el puerto 9090 del contenedor al puerto 9000 del host
-    restart: unless-stopped
+      - "9000:9090"
     command:
       - '--web.listen-address=:9090'
+    restart: unless-stopped
 
 volumes:
   prometheus_data:
