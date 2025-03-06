@@ -35,10 +35,16 @@ run_command("sudo apt-get install -y docker-ce docker-ce-cli containerd.io docke
 current_user = os.getenv("SUDO_USER") or os.getenv("USER")
 run_command(f"sudo usermod -aG docker {current_user}")
 
+run_command("sudo apt install -y docker-compose")
+
 print("🔄 Cambios aplicados. Es necesario cerrar sesión o reiniciar la Raspberry Pi para aplicar los cambios.")
 
 # ✅ Verificar si Docker está instalado correctamente
 print("🔍 Verificando la instalación de Docker...")
 subprocess.run("docker --version", shell=True, check=True)
+
+subprocess.run("docker-compose --version", shell=True, check=True)
+
+
 
 print("✅ Docker instalado correctamente. 🚀")
