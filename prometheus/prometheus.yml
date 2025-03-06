@@ -1,8 +1,21 @@
 global:
-  scrape_interval: 15s         # Intervalo global para recopilar métricas
-  evaluation_interval: 15s       # Frecuencia de evaluación de reglas de alerta
+  scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'prometheus'       # Trabajo para que Prometheus se scrape a sí mismo
+  - job_name: 'gitlab'
+    # GitLab suele exponer métricas en '/-/metrics' si se habilitan
+    metrics_path: '/-/metrics'
     static_configs:
-      - targets: ['localhost']  # Como Prometheus está corriendo en el puerto 9000, se apunta a sí mismo
+      - targets: ['192.168.100.16:80']
+
+  - job_name: 'grafana'
+    # Grafana expone métricas en '/metrics' si está configurado
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['192.168.100.16:3000']
+
+  - job_name: 'prometheus'
+    # Prometheus expone sus propias métricas en '/metrics'
+    static_configs:
+      - targets: ['192.168.100.16:9000']
