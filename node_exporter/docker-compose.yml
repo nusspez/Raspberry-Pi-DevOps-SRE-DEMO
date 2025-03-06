@@ -5,5 +5,5 @@ services:
     image: prom/node-exporter:latest
     container_name: node_exporter
     ports:
-      - "9100:9100"
+      - "9101:9100"  # Mapea el puerto 9100 del contenedor al 9101 del host
     restart: unless-stopped
