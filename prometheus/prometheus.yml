@@ -5,4 +5,4 @@ global:
 scrape_configs:
   - job_name: 'prometheus'       # Trabajo para que Prometheus se scrape a sí mismo
     static_configs:
-      - targets: ['localhost:9000']  # Como Prometheus está corriendo en el puerto 9000, se apunta a sí mismo
+      - targets: ['localhost']  # Como Prometheus está corriendo en el puerto 9000, se apunta a sí mismo
