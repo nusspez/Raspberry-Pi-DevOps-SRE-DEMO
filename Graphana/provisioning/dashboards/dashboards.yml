@@ -1,6 +1,6 @@
 apiVersion: 1
 providers:
-  - name: 'default'
+  - name: 'RaspberryPiDashboards'
     orgId: 1
     folder: ''
     type: file
