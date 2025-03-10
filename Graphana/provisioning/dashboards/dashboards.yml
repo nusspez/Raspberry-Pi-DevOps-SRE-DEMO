@@ -10,3 +10,4 @@ providers:
       path: /etc/grafana/provisioning/dashboard
     enviroment:
       - DS_PROMETHEUS=PBFA97CFB590B2093
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
