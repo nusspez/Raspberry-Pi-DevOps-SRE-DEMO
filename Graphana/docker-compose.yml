@@ -8,7 +8,6 @@ services:
       - "3000:3000"
     volumes:
       - ./provisioning:/etc/grafana/provisioning
-      - ./dashboards:/etc/grafana/provisioning/dashboards
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
 
