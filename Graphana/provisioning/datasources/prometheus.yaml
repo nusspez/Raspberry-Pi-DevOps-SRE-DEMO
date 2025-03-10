@@ -4,5 +4,5 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: http://192.168.100.16:9000/metrics
+    url: http://192.168.100.16:9000
     isDefault: true
