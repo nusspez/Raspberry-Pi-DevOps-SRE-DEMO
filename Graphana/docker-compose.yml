@@ -12,6 +12,5 @@ services:
     restart: unless-stopped
     environment:
       - DS_PROMETHEUS=PBFA97CFB590B2093
-      
 volumes:
   grafana_data:
