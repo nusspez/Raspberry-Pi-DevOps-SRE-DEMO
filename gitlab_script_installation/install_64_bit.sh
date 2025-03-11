@@ -92,7 +92,7 @@ echo "🔑 Contraseña: $SECURE_PASSWORD"
 
 #crear un proyecto de Gitlab 
 
-curl --request POST "https://gitlab.com/api/v4/projects" \
+curl --request POST "https://$IP/api/v4/projects" \
      --header "PRIVATE-TOKEN: MiSuperToken123" \
      --form "name=Ansible" \
      --form "visibility=private"
