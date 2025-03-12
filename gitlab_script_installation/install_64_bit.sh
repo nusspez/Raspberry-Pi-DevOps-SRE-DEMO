@@ -131,11 +131,12 @@ sudo gitlab-runner start
 echo "Registrando el GitLab Runner..."
 sudo gitlab-runner register --non-interactive \
   --url "http://$IP" \
-  --token "$RUNNER_TOKEN" \
+  --registration-token "$RUNNER_TOKEN" \
   --executor "shell" \
   --description "Raspberry Pi Runner" \
   --tag-list "rpi,automated" \
-  --run-untagged="true" \
-  --locked="false"
+  --run-untagged=true \
+  --locked=false
 
 echo "✅ GitLab Runner instalado y registrado exitosamente."
+
