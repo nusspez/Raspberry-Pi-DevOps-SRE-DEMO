@@ -92,9 +92,50 @@ echo "🔑 Contraseña: $SECURE_PASSWORD"
 
 #crear un proyecto de Gitlab 
 
-curl --request POST "http://$IP/api/v4/projects" \
+RESPONSE=$(curl --request POST "http://$IP/api/v4/projects" \
      --header "PRIVATE-TOKEN: MiSuperToken123" \
      --form "name=Ansible" \
-     --form "visibility=private"
+     --form "visibility=private")
 
 
+PROJECT_ID=$(echo "$RESPONSE" | jq -r '.id')
+if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "null" ]; then
+    echo "❌ Error al crear el proyecto."
+    exit 1
+fi
+echo "✅ Proyecto creado con ID: $PROJECT_ID"
+
+echo "Obteniendo información del proyecto..."
+PROJECT_INFO=$(curl --silent --header "PRIVATE-TOKEN: MiSuperToken123" "http://$IP/api/v4/projects/$PROJECT_ID")
+RUNNER_TOKEN=$(echo "$PROJECT_INFO" | jq -r '.runners_token')
+echo "✅ Runner token obtenido: $RUNNER_TOKEN"
+
+echo "=== Instalación de GitLab Runner en Raspberry Pi ==="
+echo "Descargando GitLab Runner..."
+curl -L --output gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-arm64
+
+chmod +x gitlab-runner
+sudo mv gitlab-runner /usr/local/bin/
+
+if ! id -u gitlab-runner >/dev/null 2>&1; then
+    echo "Creando el usuario gitlab-runner..."
+    sudo useradd --comment "GitLab Runner" --create-home gitlab-runner --shell /bin/bash
+fi
+
+echo "Instalando GitLab Runner como servicio..."
+sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+
+echo "Iniciando GitLab Runner..."
+sudo gitlab-runner start
+
+echo "Registrando el GitLab Runner..."
+sudo gitlab-runner register --non-interactive \
+  --url "$IP" \
+  --registration-token "$RUNNER_TOKEN" \
+  --executor "shell" \
+  --description "Raspberry Pi Runner" \
+  --tag-list "rpi,automated" \
+  --run-untagged="true" \
+  --locked="false"
+
+echo "✅ GitLab Runner instalado y registrado exitosamente."
