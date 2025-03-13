@@ -4,9 +4,6 @@ set -e  # Sale si algún comando falla
 echo "Actualizando paquetes..."
 sudo apt update -y && sudo apt upgrade -y
 
-echo "Instalando Python3 y pip3..."
-sudo apt install -y python3 python3-pip
-
 echo "Instalando Ansible mediante pip3..."
 pip3 install --user ansible
 
