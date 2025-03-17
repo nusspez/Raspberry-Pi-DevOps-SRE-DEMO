@@ -170,6 +170,21 @@ sudo gitlab-runner register --non-interactive \
 echo "✅ GitLab Runner instalado y registrado exitosamente."
 
 # ========================
+# agregar llave SSH para agregar codigo de ansible
+# ========================
+
+ssh-keygen -t rsa -b 4096 -C "nusspez@gmail.com" -f "$SSH_KEY" -N ""
+eval "$(ssh-agent -s)"
+ssh-add "$SSH_KEY"
+SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
+SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
+
+curl --request POST --header "PRIVATE-TOKEN: MiSuperToken123" \
+     --data-urlencode "title=Automated Key" \
+     --data-urlencode "key=$SSH_KEY_CONTENT" \
+     "$GITLAB_URL/api/v4/user/keys"
+
+# ========================
 # agregar el codigo de Ansible automaticamente al nuevo repositorio
 # ========================
 
