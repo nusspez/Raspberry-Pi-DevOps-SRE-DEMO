@@ -1,0 +1,28 @@
+# Definición de las etapas del pipeline
+stages:
+  - build
+  - test
+  - deploy
+
+# Variables globales (opcional)
+variables:
+  PROJECT_ENV: "development"
+  # Puedes agregar otras variables, por ejemplo, para rutas, tokens, etc.
+
+# Trabajo para compilar el proyecto
+build_job:
+  stage: build
+  script:
+    - echo "Compilando el proyecto..."
+
+# Trabajo para ejecutar pruebas
+test_job:
+  stage: test
+  script:
+    - echo "Ejecutando pruebas..."
+
+# Trabajo para desplegar el proyecto
+deploy_job:
+  stage: deploy
+  script:
+    - echo "Desplegando el proyecto..."
