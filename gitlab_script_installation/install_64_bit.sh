@@ -168,3 +168,14 @@ sudo gitlab-runner register --non-interactive \
   --locked=false
 
 echo "✅ GitLab Runner instalado y registrado exitosamente."
+
+# ========================
+# agregar el codigo de Ansible automaticamente al nuevo repositorio
+# ========================
+
+cd ../ansible
+git init --initial-branch=main
+git remote add origin git@192.168.100.16:root/Ansible.git
+git add .
+git commit -m "add ansible project"
+git push --set-upstream origin main
