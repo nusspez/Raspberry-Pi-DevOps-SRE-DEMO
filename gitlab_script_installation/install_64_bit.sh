@@ -11,6 +11,7 @@ VISIBILITY="private"
 GITLAB_URL="http://192.168.100.16"
 RUNNER_EXECUTOR="shell"
 RUNNER_DESCRIPTION="Raspberry Pi Runner"
+EMAIL="nusspez@gmail.com"
 
 # ========================
 # Obtener la IP de la Raspberry Pi
@@ -105,6 +106,10 @@ sudo gitlab-runner start
 # ========================
 # Generar clave SSH si no existe
 # ========================
+
+  git config --global user.email "$EMAIL"
+  git config --global user.name "peznuss"
+
 SSH_KEY="$HOME/.ssh/id_rsa"
 if [ ! -f "$SSH_KEY" ]; then
     echo "🔑 Generando clave SSH..."
