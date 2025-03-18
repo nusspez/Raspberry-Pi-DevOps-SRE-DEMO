@@ -1,24 +1,15 @@
 #!/bin/bash
-set -e  # Salir si algún comando falla
-export DEBIAN_FRONTEND=noninteractive  # Evita confirmaciones interactivas
+set -e  # Detiene el script en caso de error
+export DEBIAN_FRONTEND=noninteractive
 
 # ========================
 # Configuración de Variables
 # ========================
-# Token personal con scope "api" para la API de GitLab
-PRIVATE_TOKEN="MiSuperToken123"
-# Nombre y visibilidad del proyecto a crear
+PRIVATE_TOKEN="${GITLAB_PRIVATE_TOKEN:-MiSuperToken123}"
 PROJECT_NAME="Ansible"
 VISIBILITY="private"
-# URL de tu instancia GitLab (ajusta si es autohospedada)
 GITLAB_URL="http://192.168.100.16"
-# En este script se utiliza el token de registro obtenido de la API,
-# que se guarda en la variable RUNNER_TOKEN.
-# Además, si tu flujo utiliza un token de registro diferente, puedes definirlo aquí:
-# REGISTRATION_TOKEN="YourRunnerRegistrationToken"  (no se usa en este ejemplo)
-
-# Configuración del runner
-RUNNER_EXECUTOR="shell"       # O "docker" si prefieres usar Docker como ejecutor
+RUNNER_EXECUTOR="shell"
 RUNNER_DESCRIPTION="Raspberry Pi Runner"
 
 # ========================
@@ -31,8 +22,6 @@ IP=$(hostname -I | awk '{print $1}')
 # ========================
 echo "🔄 Actualizando dependencias..."
 sudo apt update -y && sudo apt upgrade -y
-
-echo "🧹 Eliminando paquetes obsoletos..."
 sudo apt autoremove -y
 sudo apt autoclean -y
 
@@ -40,157 +29,116 @@ sudo apt autoclean -y
 # Configurar Swap a 4GB
 # ========================
 SWAP_SIZE_MB=4096
-echo "🚀 Configurando el Swap a ${SWAP_SIZE_MB}MB..."
+echo "🚀 Configurando Swap a ${SWAP_SIZE_MB}MB..."
 sudo dphys-swapfile swapoff
 sudo sed -i "s/^CONF_SWAPSIZE=.*/CONF_SWAPSIZE=$SWAP_SIZE_MB/" /etc/dphys-swapfile
 sudo dphys-swapfile setup
 sudo dphys-swapfile swapon
-
-echo "✅ Estado del Swap:"
 free -h
 
 # ========================
-# Instalar dependencias necesarias para GitLab
+# Instalar dependencias necesarias
 # ========================
-echo "🛠️ Instalando dependencias para GitLab..."
+echo "🛠️ Instalando dependencias..."
 sudo apt-get install -y curl openssh-server ca-certificates perl jq
 
 # ========================
-# Agregar repositorio e instalar GitLab CE
+# Configurar e instalar GitLab
 # ========================
-echo "🔑 Configurando el repositorio de GitLab..."
+echo "🦊 Instalando GitLab..."
 curl -sS https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
-
-echo "🌍 Configurando los locales..."
-sudo bash -c 'echo -e "LANG=en_US.UTF-8\nLC_ALL=en_US.UTF-8\nLC_CTYPE=en_US.UTF-8\nLC_MESSAGES=en_US.UTF-8" > /etc/default/locale'
-sudo locale-gen en_US.UTF-8
-sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
-source /etc/default/locale
-
-echo "🦊 Instalando GitLab CE..."
 sudo EXTERNAL_URL="http://$IP" apt-get -y install gitlab-ee
 sudo gitlab-ctl reconfigure
-
-echo "⏳ Esperando 30 segundos para que GitLab se inicialice..."
-sleep 30
-
-# ========================
-# Obtener la contraseña del usuario root y crear token de API
-# ========================
-ROOT_PASSWORD=$(sudo cat /etc/gitlab/initial_root_password | grep "Password:" | awk '{print $2}')
-echo "✅ Contraseña de root obtenida."
-
-# Crear un token de API para root (esto es solo un ejemplo)
-ROOT_TOKEN=$(sudo gitlab-rails runner "token = PersonalAccessToken.create!(user: User.find_by(username: 'root'), name: 'RootToken', scopes: ['api'], expires_at: Time.now + 365*24*60*60); token.set_token('MiSuperToken123'); token.save!; puts token.token")
-echo "✅ Token de administrador generado: $ROOT_TOKEN"
+sleep 30  # Esperar a que GitLab termine de iniciarse
 
 # ========================
 # Crear un nuevo usuario en GitLab
 # ========================
-SECURE_PASSWORD=$(openssl rand -base64 16 | tr -dc 'A-Za-z0-9' | head -c 16)
-echo "🔑 Contraseña generada para el nuevo usuario: $SECURE_PASSWORD"
-
 EMAIL="nusspez@gmail.com"
 USERNAME="peznuss"
+SECURE_PASSWORD=$(openssl rand -base64 16 | tr -dc 'A-Za-z0-9' | head -c 16)
 
-echo "👤 Creando el usuario $USERNAME en GitLab..."
+echo "👤 Creando usuario en GitLab..."
 USER_RESPONSE=$(curl --silent --request POST "$GITLAB_URL/api/v4/users" \
-     --header "PRIVATE-TOKEN: MiSuperToken123" \
+     --header "PRIVATE-TOKEN: $PRIVATE_TOKEN" \
      --data "email=$EMAIL&password=$SECURE_PASSWORD&username=$USERNAME&name=$USERNAME&skip_confirmation=true")
 
 USER_ID=$(echo "$USER_RESPONSE" | jq -r '.id')
-if [ "$USER_ID" == "null" ] || [ -z "$USER_ID" ]; then
+if [ -z "$USER_ID" ] || [ "$USER_ID" == "null" ]; then
   echo "❌ Error: No se pudo crear el usuario."
   exit 1
 fi
-echo "✅ Usuario $USERNAME creado con ID $USER_ID"
-
-echo "🔧 Otorgando permisos de administrador a $USERNAME..."
-curl --request PUT "$GITLAB_URL/api/v4/users/$USER_ID" \
-     --header "PRIVATE-TOKEN: MiSuperToken123" \
-     --data "admin=true"
-echo "✅ $USERNAME ahora es administrador."
-
-echo "✅ Usuario creado con éxito."
-echo "🔑 Usuario: $USERNAME"
-echo "🔑 Contraseña: $SECURE_PASSWORD"
+echo "✅ Usuario creado con ID $USER_ID"
 
 # ========================
-# Crear un proyecto en GitLab y guardar el ID y runner token
+# Crear proyecto en GitLab
 # ========================
 echo "📦 Creando proyecto en GitLab..."
 RESPONSE=$(curl --silent --request POST "$GITLAB_URL/api/v4/projects" \
-     --header "PRIVATE-TOKEN: MiSuperToken123" \
+     --header "PRIVATE-TOKEN: $PRIVATE_TOKEN" \
      --form "name=$PROJECT_NAME" \
      --form "visibility=$VISIBILITY")
 
-PROJECT_ID=$(echo "$RESPONSE" | jq -r '.id')
-if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "null" ]; then
-    echo "❌ Error al crear el proyecto."
+if echo "$RESPONSE" | jq -e '.id' >/dev/null; then
+    PROJECT_ID=$(echo "$RESPONSE" | jq -r '.id')
+    echo "✅ Proyecto creado con ID: $PROJECT_ID"
+else
+    echo "❌ Error al crear el proyecto. Respuesta de GitLab: $RESPONSE"
     exit 1
 fi
-echo "✅ Proyecto creado con ID: $PROJECT_ID"
-
-echo "Obteniendo información del proyecto..."
-PROJECT_INFO=$(curl --silent --header "PRIVATE-TOKEN: MiSuperToken123" "$GITLAB_URL/api/v4/projects/$PROJECT_ID")
-RUNNER_TOKEN=$(echo "$PROJECT_INFO" | jq -r '.runners_token')
-echo "✅ Runner token obtenido: $RUNNER_TOKEN"
 
 # ========================
-# Instalar GitLab Runner en la Raspberry Pi
+# Instalar GitLab Runner
 # ========================
-echo "=== Instalación de GitLab Runner en Raspberry Pi ==="
-echo "Descargando GitLab Runner..."
+echo "=== Instalación de GitLab Runner ==="
 curl -L --output gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-arm64
-
 chmod +x gitlab-runner
 sudo mv gitlab-runner /usr/local/bin/
 
 if ! id -u gitlab-runner >/dev/null 2>&1; then
-    echo "Creando el usuario gitlab-runner..."
     sudo useradd --comment "GitLab Runner" --create-home gitlab-runner --shell /bin/bash
 fi
 
-echo "Instalando GitLab Runner como servicio..."
 sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
-
-echo "Iniciando GitLab Runner..."
 sudo gitlab-runner start
 
-echo "Registrando el GitLab Runner..."
-sudo gitlab-runner register --non-interactive \
-  --url "$GITLAB_URL" \
-  --registration-token "$RUNNER_TOKEN" \
-  --executor "shell" \
-  --description "Raspberry Pi Runner" \
-  --tag-list "rpi,automated" \
-  --run-untagged=true \
-  --locked=false
-
-echo "✅ GitLab Runner instalado y registrado exitosamente."
-
 # ========================
-# agregar llave SSH para agregar codigo de ansible
+# Generar clave SSH si no existe
 # ========================
+SSH_KEY="$HOME/.ssh/id_rsa"
+if [ ! -f "$SSH_KEY" ]; then
+    echo "🔑 Generando clave SSH..."
+    ssh-keygen -t rsa -b 4096 -C "nusspez@gmail.com" -f "$SSH_KEY" -N ""
+fi
 
-ssh-keygen -t rsa -b 4096 -C "nusspez@gmail.com" -f "$SSH_KEY" -N ""
 eval "$(ssh-agent -s)"
 ssh-add "$SSH_KEY"
 SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
 SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
 
-curl --request POST --header "PRIVATE-TOKEN: MiSuperToken123" \
+curl --request POST --header "PRIVATE-TOKEN: $PRIVATE_TOKEN" \
      --data-urlencode "title=Automated Key" \
      --data-urlencode "key=$SSH_KEY_CONTENT" \
      "$GITLAB_URL/api/v4/user/keys"
 
 # ========================
-# agregar el codigo de Ansible automaticamente al nuevo repositorio
+# Agregar código de Ansible al repositorio GitLab
 # ========================
-
 cd ../ansible
-git init --initial-branch=main
-git remote add origin git@192.168.100.16:root/Ansible.git
+
+# Verificar si Git ya está inicializado
+if [ ! -d ".git" ]; then
+    echo "⚡ Inicializando Git en el directorio de Ansible..."
+    git init --initial-branch=main
+fi
+
+# Evitar duplicados en el remote
+if ! git remote | grep -q "origin"; then
+    git remote add origin git@192.168.100.16:root/Ansible.git
+fi
+
 git add .
-git commit -m "add ansible project"
-git push --set-upstream origin main
+git commit -m "Add Ansible project"
+git push --set-upstream origin main || echo "⚠️ Error al hacer push. Verifica SSH."
+
+echo "🚀 Todo listo: GitLab, GitLab Runner y Ansible configurados."
