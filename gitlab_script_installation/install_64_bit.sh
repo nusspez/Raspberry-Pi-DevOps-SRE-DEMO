@@ -172,6 +172,10 @@ echo "✅ GitLab Runner instalado y registrado exitosamente."
 # ========================
 # agregar llave SSH para agregar codigo de ansible
 # ========================
+
+git config --global user.email "nusspez@gmail.com"
+git config --global user.name "peznuss"
+
 SSH_KEY="$HOME/.ssh/id_rsa"
 ssh-keygen -t rsa -b 4096 -C "nusspez@gmail.com" -f "$SSH_KEY" -N ""
 eval "$(ssh-agent -s)"
