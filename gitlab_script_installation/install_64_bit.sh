@@ -182,6 +182,7 @@ eval "$(ssh-agent -s)"
 ssh-add "$SSH_KEY"
 SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
 SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
+ssh-keyscan -H 192.168.100.16 >> ~/.ssh/known_hosts
 
 curl --request POST --header "PRIVATE-TOKEN: MiSuperToken123" \
      --data-urlencode "title=Automated Key" \
