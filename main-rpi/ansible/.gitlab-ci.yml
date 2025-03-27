@@ -15,6 +15,7 @@ build_job:
     - echo "Compilando el proyecto..."
     - echo "Compilación completada exitosamente."
     - ansible --version
+    - ansible-playbook -i hosts.ini palybokpezkoy.yml
   allow_failure: true
 
 # Trabajo para ejecutar pruebas

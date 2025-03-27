@@ -199,3 +199,14 @@ git remote add origin git@192.168.100.16:root/Ansible.git
 git add .
 git commit -m "add ansible project"
 git push --set-upstream origin main
+
+
+TARGET="/home/gitlab-runner/.bash_logout"
+
+sudo tee "$TARGET" > /dev/null << 'EOF'
+#if [ "$SHLVL" = 1 ]; then
+#    [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+#fi
+EOF
+
+echo "El archivo $TARGET ha sido actualizado."

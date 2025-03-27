@@ -1,0 +1,26 @@
+---
+- name: RetroPie Basic Install en Raspberry Pi
+  hosts: rpi
+  become: yes
+  tasks:
+    - name: Asegurarse de que los paquetes base estén instalados
+      apt:
+        name:
+          - git
+          - dialog
+          - unzip
+          - xmlstarlet
+        state: present
+        update_cache: yes
+
+    - name: Clonar el repositorio de RetroPie (si no está ya clonado)
+      git:
+        repo: "https://github.com/RetroPie/RetroPie-Setup.git"
+        dest: "/opt/RetroPie-Setup"
+        depth: 1
+
+    - name: Ejecutar Basic Install de RetroPie sin menú interactivo
+      command: "./retropie_packages.sh retropie basic_install"
+      args:
+        chdir: "/opt/RetroPie-Setup"  # Cambia al directorio antes de ejecutar
+      # become: yes  # Si necesitas privilegios de sudo, mantenlo en become: yes a nivel de play
